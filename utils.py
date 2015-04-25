@@ -1,5 +1,8 @@
 from bs4 import BeautifulSoup, Comment
 import re
+import os
+import glob
+import json
 
 ansregex = '(?i)a..?wers?:'
 bpart_regex = '^\[\d+\]'
@@ -18,7 +21,7 @@ def get_bonus_part_value(line):
     match = re.search(bpart_regex, line)
     return re.sub(bonus_value_regex, '', match.group(0))
 
-def sanitize (html, valid_tags):
+def sanitize (html, valid_tags=[]):
     soup = BeautifulSoup(html)
     # get rid of comments
     for comment in soup.findAll(
@@ -51,6 +54,8 @@ def conf_gen(path, spec):
     json.dump(tour_dict, output_file)
 
     print 'dumped config to ' + os.path.join(path, 'config.json')
+
+    output_file.close()
 
     return os.path.abspath('config.json')
 

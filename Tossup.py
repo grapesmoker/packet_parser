@@ -1,7 +1,9 @@
 from utils import sanitize
 import re
-num_regex = '^<strong>[\d]+\.[\s]*<\/strong>[\s]*'
-tb_regex = '^<strong>TB\.[\s]*<\/strong>[\s]*'
+import json
+
+num_regex = '^(<strong>[\d]+\.[\s]*<\/strong>[\s]*|[\d]+\.[\s]*)'
+tb_regex = '^(<strong>TB\.[\s]*<\/strong>[\s]*|TB\.[\s]*)'
 
 class InvalidTossup(Exception):
 
@@ -34,9 +36,13 @@ class Tossup:
         self.answer = self.answer.replace('</strong></em>', '</req>')
 
     def to_json(self):
-        return json.dumps({'question': self.question,
-                           'answer': self.answer,
-                           'number': self.number}) + '\n'
+        return json.dumps(self.to_dict()) + '\n'
+
+    def to_dict(self):
+        return {'question': self.question,
+                'answer': self.answer,
+                'number': self.number}
+
 
     def to_latex(self):
         answer = self.answer.replace('<req>', r'\ans{')
@@ -75,3 +81,7 @@ class Tossup:
         s += '\n' #'*' * 50 + '\n'
 
         return s.decode('utf-8')
+
+    def __str__(self):
+
+        return self.__unicode__()
