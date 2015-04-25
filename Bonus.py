@@ -51,7 +51,7 @@ class Bonus:
         self.answers.append(answer)
 
     def to_json(self):
-        return json.dumps(self.to_dict()) + '\n'
+        return json.dumps(self.to_dict(), indent=4) + '\n'
 
     def to_dict(self):
         return {'leadin': self.leadin,

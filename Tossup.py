@@ -36,7 +36,7 @@ class Tossup:
         self.answer = self.answer.replace('</strong></em>', '</req>')
 
     def to_json(self):
-        return json.dumps(self.to_dict()) + '\n'
+        return json.dumps(self.to_dict(), indent=4) + '\n'
 
     def to_dict(self):
         return {'question': self.question,

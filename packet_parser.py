@@ -44,7 +44,7 @@ def parse_directory(dirname, mode='json'):
     
     if mode == 'json':
         if tour.is_valid():
-            json.dump(tour.to_dict(), open('{0} {1}.json'.format(tour.year, tour.tour_name), 'w'))
+            json.dump(tour.to_dict(), open('{0} {1}.json'.format(tour.year, tour.tour_name), 'w'), indent=4)
     
 if __name__ == '__main__':
     reload(sys)

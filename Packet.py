@@ -66,7 +66,7 @@ class Packet:
 
     def to_json(self):
 
-        return json.dumps(self.to_dict())
+        return json.dumps(self.to_dict(), indent=4)
 
     def is_valid(self):
 
@@ -174,7 +174,7 @@ class Packet:
                         
                     bonus_parts = map(lambda x: re.sub(bpart_regex, '', x).strip(),
                                       bonus_parts)
-                    answers = map(lambda x: re.sub(ansregex, '', x), result[2::2])
+                    answers = map(lambda x: re.sub(ansregex, '', x).strip(), result[2::2])
                     leadin = result[0]
                     bonus = Bonus(leadin=leadin, parts=bonus_parts,
                                   values=values, answers=answers, number=bs_num)

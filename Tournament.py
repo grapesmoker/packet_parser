@@ -25,7 +25,7 @@ class Tournament:
 
     def to_json(self):
 
-        return json.dumps(self.to_dict())
+        return json.dumps(self.to_dict(), indent=4)
 
     def __str__(self):
 
