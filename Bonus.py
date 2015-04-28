@@ -20,12 +20,15 @@ class InvalidBonus(Exception):
         return s
 
 class Bonus:
-    def __init__(self, leadin='', parts=[], answers=[], values=[], number=''):
+    def __init__(self, leadin='', parts=[], answers=[], values=[], number='',
+                 packet=None, tournament=None):
         self.leadin = leadin
         self.parts = parts
         self.answers = answers
         self.number = number
         self.values = values
+        self.packet = packet
+        self.tournament = tournament
 
         self.leadin = re.sub(num_regex, '', self.leadin)
         self.leadin = re.sub(tb_regex, '', self.leadin)
@@ -58,7 +61,12 @@ class Bonus:
                 'parts': self.parts,
                 'answers': self.answers,
                 'number': self.number,
-                'values': self.values}
+                'values': self.values,
+                'leadin_sanitized': self.leadin_sanitized,
+                'parts_sanitized': self.parts_sanitized,
+                'answers_sanitized': self.answers_sanitized,
+                'packet': self.packet,
+                'tournament': self.tournament}
 
     
     def to_latex(self):

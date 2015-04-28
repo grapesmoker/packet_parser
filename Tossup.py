@@ -19,7 +19,7 @@ class InvalidTossup(Exception):
         return s.decode('utf-8')
 
 class Tossup:
-    def __init__(self, question='', answer='', number=''):
+    def __init__(self, question='', answer='', number='', packet=None, tournament=None):
         self.question = question
         self.answer = answer
         self.number = number
@@ -35,13 +35,20 @@ class Tossup:
         self.answer = self.answer.replace('</em></strong>', '</req>')
         self.answer = self.answer.replace('</strong></em>', '</req>')
 
+        self.packet = packet
+        self.tournament = tournament
+
     def to_json(self):
         return json.dumps(self.to_dict(), indent=4) + '\n'
 
     def to_dict(self):
         return {'question': self.question,
                 'answer': self.answer,
-                'number': self.number}
+                'number': self.number,
+                'answer_sanitized': self.answer_sanitized,
+                'question_sanitized': self.question_sanitized,
+                'packet': self.packet,
+                'tournament': self.tournament}
 
 
     def to_latex(self):

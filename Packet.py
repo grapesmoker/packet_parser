@@ -27,10 +27,11 @@ class InvalidPacket(Exception):
 
 class Packet:
 
-    def __init__(self, author, tossups=[], bonuses=[]):
+    def __init__(self, author, tossups=[], bonuses=[], tournament=None):
         self.author = author
         self.tossups = tossups
         self.bonuses = bonuses
+        self.tournament = tournament
 
     def add_tossup(self, tossup):
 
@@ -91,6 +92,7 @@ class Packet:
         if tossup_errors != [] or bonus_errors != []:
             raise InvalidPacket(self.author, tossup_errors, bonus_errors)
         else:
+            print 'packet {0} parsed {1} tossups and {2} bonuses'.format(self.author, len(self.tossups), len(self.bonuses))
             return True
             
 
@@ -123,7 +125,7 @@ class Packet:
         return html_file
 
     
-    def prepare_html_file(self, html_file, skip_lines=2):
+    def prepare_html_file(self, html_file, skip_lines=0):
     
         with codecs.open(html_file, 'r', encoding='utf-8') as f:
             packet_contents = f.read()
@@ -131,7 +133,9 @@ class Packet:
         packet_contents = map(lambda x: sanitize(x, valid_tags=['em', 'strong']),
                               packet_contents.split('\n'))
         packet_contents = [x.strip() for x in packet_contents if x.strip() != ''
-                           and len(x) > 20]
+                           and len(x) > 20
+                           and (not re.search('tossups', x, flags=re.I))
+                           and (not re.search('bonuses', x, flags=re.I))]
     
         return packet_contents[skip_lines:]
 
@@ -144,10 +148,13 @@ class Packet:
 
         tu_num = 1
         bs_num = 1
+
+        # this is an arbitrary symbol to make sure the stack popping terminates
+        packet_contents.append(50 * '*')
     
-        for i, item in enumerate(packet_contents):
+        for i, item in enumerate(packet_contents, start=1):
         
-            if not is_answer(item) and not is_bpart(item) and not len(parser_stack) < 2:
+            if (not is_answer(item) and not is_bpart(item) and not len(parser_stack) < 2) or i == len(packet_contents):
                 # pop the stack
                 result = []
                 while parser_stack != []:
@@ -157,7 +164,8 @@ class Packet:
                 if len(result) == 2 and is_answer(result[1]) and not is_answer(result[0]) and not is_bpart(result[0]):
                     answer = re.sub(ansregex, '', result[1])
                     question = result[0]
-                    new_tossup = Tossup(question=question, answer=answer, number=tu_num)
+                    new_tossup = Tossup(question=question, answer=answer, number=tu_num,
+                                        packet=self.author, tournament=self.tournament)
                     tossups.append(new_tossup)
                     tu_num += 1
                     
@@ -177,7 +185,8 @@ class Packet:
                     answers = map(lambda x: re.sub(ansregex, '', x).strip(), result[2::2])
                     leadin = result[0]
                     bonus = Bonus(leadin=leadin, parts=bonus_parts,
-                                  values=values, answers=answers, number=bs_num)
+                                  values=values, answers=answers, number=bs_num,
+                                  packet=self.author, tournament=self.tournament)
                     bonuses.append(bonus)
                     bs_num += 1
                 

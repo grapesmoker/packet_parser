@@ -64,9 +64,9 @@ class Tournament:
 
         for file_entry in packets:
             packet_file = os.path.join(dir, file_entry['filename'])
-            packet_author = os.path.join(dir, file_entry['author'])
+            packet_author = file_entry['author']
 
-            packet = Packet(packet_author)
+            packet = Packet(packet_author, tournament=self.tour_name)
             packet.load_packet_from_file(packet_file)
 
             self.add_packet(packet)

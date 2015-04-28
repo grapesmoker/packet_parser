@@ -12,6 +12,7 @@ import glob
 import json
 import argparse
 import codecs
+import requests
 
 from pprint import pprint
 
@@ -23,6 +24,27 @@ from Packet import Packet
 from Tournament import Tournament
 
 from utils import conf_gen
+
+def send_json_data(json_file, url):
+
+    data = json.load(open(json_file, 'r'))
+
+    #print url
+    #r = requests.get(url)
+    #print r.text
+
+    tournament = data['tournament']
+    year = data['year']
+
+    print year, tournament
+    
+    #headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
+    r = requests.post(url, json=data) #, headers=headers)
+
+    with open('err.html', 'w') as f:
+        f.write(r.content)
+        
+        
 
 
 
@@ -41,10 +63,12 @@ def parse_directory(dirname, mode='json'):
 
     tour = Tournament()
     tour.create_tournament_from_directory(dirname)
+
+    tour_json_file = os.path.join(dirname, '{0} {1}.json'.format(tour.year, tour.tour_name))
     
     if mode == 'json':
         if tour.is_valid():
-            json.dump(tour.to_dict(), open('{0} {1}.json'.format(tour.year, tour.tour_name), 'w'), indent=4)
+            json.dump(tour.to_dict(), open(tour_json_file, 'w'), indent=4)
     
 if __name__ == '__main__':
     reload(sys)
@@ -55,6 +79,7 @@ if __name__ == '__main__':
     parser.add_argument('-o', '--operation', dest='operation')
     parser.add_argument('-s', '--spec', dest='spec')
     parser.add_argument('-m', '--mode', dest='mode', default='json')
+    parser.add_argument('-u', '--url', dest='url')
     parser.add_argument('-op', '--output-file', dest='output_file')
     
     args = parser.parse_args()
@@ -76,3 +101,6 @@ if __name__ == '__main__':
 
     if args.operation == 'conf' and args.dir is not None and args.spec is not None:
         conf_gen(args.dir, args.spec)
+
+    if args.operation == 'send' and args.url is not None and args.file is not None:
+        send_json_data(args.file, args.url)
