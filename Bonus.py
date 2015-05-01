@@ -32,7 +32,12 @@ class Bonus:
 
         self.leadin = re.sub(num_regex, '', self.leadin)
         self.leadin = re.sub(tb_regex, '', self.leadin)
-            
+        
+        if self.leadin.startswith('<strong>'):
+            self.leadin = '<strong>' + re.sub('^[\d]+\.[\s]*', '', self.leadin[8:])
+            self.leadin = '<strong>' + re.sub('^TB\.[\s]*', '', self.leadin[8:])
+
+        
         def clean_answer(ans):
             ans = ans.replace('<strong><em>', '<req>')
             ans = ans.replace('<em><strong>', '<req>')

@@ -29,6 +29,10 @@ class Tossup:
 
         self.question = re.sub(num_regex, '', self.question)
         self.question = re.sub(tb_regex, '', self.question)
+
+        if self.question.startswith('<strong>'):
+            self.question = '<strong>' + re.sub('^[\d]+\.[\s]*', '', self.question[8:])
+            self.question = '<strong>' + re.sub('^TB\.[\s]*', '', self.question[8:])
         
         self.answer = self.answer.replace('<strong><em>', '<req>')
         self.answer = self.answer.replace('<em><strong>', '<req>')

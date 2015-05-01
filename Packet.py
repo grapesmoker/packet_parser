@@ -129,13 +129,15 @@ class Packet:
     
         with codecs.open(html_file, 'r', encoding='utf-8') as f:
             packet_contents = f.read()
-        
+
+        packet_contents = re.sub('<br />', '\n', packet_contents)
+            
         packet_contents = map(lambda x: sanitize(x, valid_tags=['em', 'strong']),
                               packet_contents.split('\n'))
         packet_contents = [x.strip() for x in packet_contents if x.strip() != ''
                            and len(x) > 20
-                           and (not re.search('tossups', x, flags=re.I))
-                           and (not re.search('bonuses', x, flags=re.I))]
+                           and (not re.search('Tossups', x, flags=re.I))
+                           and (not re.search('Bonuses', x, flags=re.I))]
     
         return packet_contents[skip_lines:]
 
