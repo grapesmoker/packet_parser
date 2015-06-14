@@ -119,8 +119,12 @@ class Bonus:
             except ValueError:
                 raise InvalidBonus('values', self.values, self.number)
 
-        if len(self.parts) != len(self.values) or len(self.parts) != len(self.answers) or len(self.values) != len(self.answers):
-            raise InvalidBonus('parts', self.parts, self.number)
+        if len(self.parts) != len(self.values):
+            raise InvalidBonus('parts and values', (self.parts, self.values), self.number)
+        elif len(self.parts) != len(self.answers):
+            raise InvalidBonus('parts and answers', (self.parts, self.values), self.number)
+        elif len(self.values) != len(self.answers):
+            raise InvalidBonus('values and answers', (self.values, self.answers), self.number)
 
         if len(self.parts) == 1:
             # this should never happen
