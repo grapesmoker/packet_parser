@@ -13,7 +13,6 @@ try:
 except Exception as ex:
     print 'Mongo not available'
 
-
 def import_json_into_mongo(filename):
 
     if not validate_json(filename):
@@ -31,8 +30,7 @@ def import_json_into_mongo(filename):
         print 'importing ' + tournament
         
         t_id = tournaments.insert({'tournament': tournament, 'year': year, 'numPackets': num_packets})
-       
-                
+        
         for packet in packets_json:
 
             print 'importing packet ' + packet['author']
@@ -41,7 +39,6 @@ def import_json_into_mongo(filename):
                                    'year': packet['year'], 
                                    'author': packet['author'], 
                                    'tournament': t_id})
-
 
             tossups_json = packet['tossups']
             bonuses_json = packet['bonuses']

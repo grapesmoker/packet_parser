@@ -79,17 +79,14 @@ class Tossup:
         if self.answer == '':
             raise InvalidTossup('answer', self.answer, self.number)
 
-        # if re.match('answer:', self.answer) is None:
-        #        raise InvalidTossup('answer', self.answer)
-
         self.valid = True
         return True
 
     def __unicode__(self):
 
-        s =  '\n' #'*' * 50 + '\n'
+        s =  '\n'
         s += '{0}\nANSWER: {1}'.format(self.question, self.answer)
-        s += '\n' #'*' * 50 + '\n'
+        s += '\n'
 
         return s.decode('utf-8')
 

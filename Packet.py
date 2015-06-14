@@ -24,7 +24,6 @@ class InvalidPacket(Exception):
 
         return s
 
-
 class Packet:
 
     def __init__(self, author, tossups=[], bonuses=[], tournament=None):
@@ -123,7 +122,6 @@ class Packet:
         output, errors = p.communicate()
     
         return html_file
-
     
     def prepare_html_file(self, html_file, skip_lines=0):
     
@@ -197,6 +195,3 @@ class Packet:
                 parser_stack.append(item)
                 
         return tossups, bonuses
-
-
-    
