@@ -3,8 +3,8 @@ import json
 
 from utils import sanitize
 
-num_regex = '^(<strong>[\d]+\.[\s]*<\/strong>[\s]*|[\d]+\.[\s]*)'
-tb_regex = '^(<strong>TB\.[\s]*<\/strong>[\s]*|TB\.[\s]*)'
+num_regex = '^([\s]*<strong>[\d]+\.[\s]*<\/strong>[\s]*|[\s]*[\d]+\.[\s]*)'
+tb_regex = '^([\s]*<strong>TB\.[\s]*<\/strong>[\s]*|[\s]*TB\.[\s]*)'
 
 class InvalidBonus(Exception):
 
@@ -37,7 +37,6 @@ class Bonus:
             self.leadin = '<strong>' + re.sub('^[\d]+\.[\s]*', '', self.leadin[8:])
             self.leadin = '<strong>' + re.sub('^TB\.[\s]*', '', self.leadin[8:])
 
-        
         def clean_answer(ans):
             ans = ans.replace('<strong><em>', '<req>')
             ans = ans.replace('<em><strong>', '<req>')
@@ -50,7 +49,6 @@ class Bonus:
         self.answers_sanitized = map(sanitize, self.answers)
         self.leadin_sanitized = sanitize(self.leadin)
         self.parts_sanitized = map(sanitize, self.parts)
-
         
     def add_part(part):
         self.parts.append(part)
@@ -109,12 +107,6 @@ class Bonus:
         if self.values == []:
             raise InvalidBonus('values', self.values, self.number)
 
-        # for ans in self.answers:
-        #    if re.match('answer:', ans) is None:
-        #        raise InvalidBonus('answers', self.answers)
-        #    if ans == '':
-        #        raise Invalidbonus('answers', self.answers)
-
         for part in self.parts:
             if part == '':
                 raise InvalidBonus('parts', self.parts, self.number)
@@ -138,17 +130,12 @@ class Bonus:
         return True
 
     def __unicode__(self):
-        #print self.parts, self.values, self.answers
-        #s = '*' * 50 + '\n'
         s = self.leadin + '\n'
 
         for p, v, a in zip(self.parts, self.values, self.answers):
-            #print v, p, a
             s += '[{0}] {1}\nANSWER: {2}\n'.format(v, p, a)
 
-        #s += '*' * 50 + '\n'
-        
-        return s #.decode('utf-8')
+        return s
 
     def __str__(self):
 
