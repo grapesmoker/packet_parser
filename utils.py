@@ -73,7 +73,6 @@ def validate_json(filename):
 def tossup_filter(tossups):
 
     tossups = map(lambda text: string.strip(re.sub('^\d*\.', '', text)), tossups)
-    #tossups = map(lambda text: re.sub('\'', '\\\'', text), tossups) 
     questions = [tossups[i] for i in range(len(tossups)) if i % 2 == 0]
     questions = map(lambda text: string.strip(re.sub('^\d*\.', '', text)), questions)
     answers = [tossups[i] for i in range(len(tossups)) if i % 2 == 1]

@@ -60,7 +60,6 @@ def parse_directory(dirname, mode='json'):
             json.dump(tour.to_dict(), open(tour_json_file, 'w'), indent=4)
     
 if __name__ == '__main__':
-    print "What is going on?"
     reload(sys)
     sys.setdefaultencoding('utf-8')
     parser = argparse.ArgumentParser()
