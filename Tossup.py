@@ -2,8 +2,8 @@ from utils import sanitize
 import re
 import json
 
-num_regex = '^(<strong>[\d]+\.[\s]*<\/strong>[\s]*|[\d]+\.[\s]*)'
-tb_regex = '^(<strong>TB\.[\s]*<\/strong>[\s]*|TB\.[\s]*)'
+num_regex = '^([\s]*<strong>[\d]+\.[\s]*<\/strong>[\s]*|[\s]*[\d]+\.[\s]*)'
+tb_regex = '^([\s]*<strong>TB\.[\s]*<\/strong>[\s]*|[\s]*TB\.[\s]*)'
 
 class InvalidTossup(Exception):
 
