@@ -6,19 +6,19 @@ class BonusTests(unittest.TestCase):
     def test_bonusLeadin(self):
 
         bonus = Bonus(leadin = "1. This is a leadin.")
-        self.assertEqual("This is a leadin.", bonus.leadin, "Number should be removed from leadin.")
+        assertEqual(self, "This is a leadin.", bonus.leadin, "Number should be removed from leadin.")
 
         bonus = Bonus(leadin = "TB. This is a tiebreaker.")
-        self.assertEqual("This is a tiebreaker.", bonus.leadin, "TB. should be removed from leadin.")
+        assertEqual(self, "This is a tiebreaker.", bonus.leadin, "TB. should be removed from leadin.")
 
         bonus = Bonus(leadin = "<strong>7.</strong> This person did something.")
-        self.assertEqual("This person did something.", bonus.leadin, "<strong>Number</strong> should be removed from leadin.")
+        assertEqual(self, "This person did something.", bonus.leadin, "<strong>Number</strong> should be removed from leadin.")
 
         bonus = Bonus(leadin = "6. <strong>This leadin is bold</strong>, for 10 points each.")
-        self.assertEqual("<strong>This leadin is bold</strong>, for 10 points each.", bonus.leadin, "<strong> should be preserved in leadin text.")
+        assertEqual(self, "<strong>This leadin is bold</strong>, for 10 points each.", bonus.leadin, "<strong> should be preserved in leadin text.")
 
         bonus = Bonus(leadin = " 6. Spaces should be removed.")
-        self.assertEqual("Spaces should be removed.", bonus.leadin, "Spaces and numbers should have been removed.")
+        assertEqual(self, "Spaces should be removed.", bonus.leadin, "Spaces and numbers should have been removed.")
 
     def test_bonusIsValid(self):
 
@@ -70,6 +70,27 @@ class BonusTests(unittest.TestCase):
 
         bonus = Bonus(leadin = normalLeadin, parts = normalParts, answers = normalAnswers, values = manyValues)
         self.isValidThrows(bonus, "Bonus with too many values should not be valid.")
+
+    def test_bonusAnswer(self):
+
+        parts = [ "First part", "Second part" ]
+        bonus = Bonus(parts = parts, answers = [ "<strong><em>Strong</strong></em> first", "<em><strong>Em</em></strong> first" ])
+        assertEqual(self, "<req>Strong</req> first", bonus.answers[0], "<strong><em> pair not escaped properly")
+        assertEqual(self, "<req>Em</req> first", bonus.answers[1], "<em><strong> pair not escaped properly")
+
+        # Make sure we escape mixed end tags
+        bonus = Bonus(parts = parts, answers = [ "<strong><em>Strong</em></strong> first", "<em><strong>Em</strong></em> first" ])
+        assertEqual(self, "<req>Strong</req> first", bonus.answers[0], "<strong><em></em></strong> not escaped properly")
+        assertEqual(self, "<req>Em</req> first", bonus.answers[1], "<em><strong></strong></em> not escaped properly")
+
+    def test_bonusSanitization(self):
+        parts = [ "He wrote <i>Long Day's Journey Into Night</i>" ]
+        answers = [ "Eugene <strong><em>O'Neill</strong></em>" ]
+        bonus = Bonus(leadin = "He wrote <em>The Emperor Jones</em>.", parts = parts, answers = answers)
+
+        assertEqual(self, "He wrote The Emperor Jones.", bonus.leadin_sanitized, "Leadin not sanitized.")
+        assertEqual(self, "He wrote Long Day's Journey Into Night", bonus.parts_sanitized[0], "Parts not sanitized.")
+        assertEqual(self, "Eugene O'Neill", bonus.answers_sanitized[0], "Answers not sanitized.")
         
     def isValidThrows(self, bonus, message):
         try:
@@ -78,6 +99,7 @@ class BonusTests(unittest.TestCase):
         except InvalidBonus:
             pass
 
+# TODO: Make this part of a base test class that other tests inherit from?
 def assertEqual(testClass, expected, actual, message):
 
     testClass.assertEqual(expected, actual, "Expected: <" + expected + ">, Actual: <" + actual + ">. " + message)
