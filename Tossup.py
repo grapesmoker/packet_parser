@@ -23,9 +23,6 @@ class Tossup:
         self.question = question
         self.answer = answer
         self.number = number
-        
-        self.answer_sanitized = sanitize(self.answer, [])
-        self.question_sanitized = sanitize(self.question, [])
 
         self.question = re.sub(num_regex, '', self.question)
         self.question = re.sub(tb_regex, '', self.question)
@@ -38,6 +35,9 @@ class Tossup:
         self.answer = self.answer.replace('<em><strong>', '<req>')
         self.answer = self.answer.replace('</em></strong>', '</req>')
         self.answer = self.answer.replace('</strong></em>', '</req>')
+
+        self.answer_sanitized = sanitize(self.answer, [])
+        self.question_sanitized = sanitize(self.question, [])
 
         self.packet = packet
         self.tournament = tournament
