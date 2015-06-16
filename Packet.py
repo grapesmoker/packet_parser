@@ -132,7 +132,7 @@ class Packet:
             
         packet_contents = map(lambda x: sanitize(x, valid_tags=['em', 'strong']),
                               packet_contents.split('\n'))
-        packet_contents = [x.strip() for x in packet_contents if x.strip() != ''
+        packet_contents = [x.strip() for x in packet_contents if sanitize(x).strip() != ''
                            and len(x) > 20
                            and (not re.search('Tossups', x, flags=re.I))
                            and (not re.search('Bonuses', x, flags=re.I))]
