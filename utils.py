@@ -5,7 +5,7 @@ import glob
 import json
 
 ansregex = '(?i)a..?wers?:'
-bpart_regex = '^\[\d+\]'
+bpart_regex = '^[\s]*\[\d+\]'
 bonus_value_regex = '\[|\]|\(|\)'
 
 def is_answer(line):
@@ -69,19 +69,12 @@ def validate_json(filename):
         print "Invalid JSON!"
         print ex
         return False
-    
-    
-
-
-
                 
 def tossup_filter(tossups):
 
     tossups = map(lambda text: string.strip(re.sub('^\d*\.', '', text)), tossups)
-    #tossups = map(lambda text: re.sub('\'', '\\\'', text), tossups) 
     questions = [tossups[i] for i in range(len(tossups)) if i % 2 == 0]
     questions = map(lambda text: string.strip(re.sub('^\d*\.', '', text)), questions)
-    answers = [tossups[i] for i in range(len(tossups)) if i % 2 == 1]
     answers = [tossups[i] for i in range(len(tossups)) if i % 2 == 1]
     answers = map(lambda text: re.sub(ansregex, '', text, re.I), answers)
     answers = map(lambda text: string.strip(text), answers)

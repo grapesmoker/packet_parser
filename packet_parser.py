@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-# requires wv on linux
 import os
 import sys
 import re
@@ -29,24 +27,15 @@ def send_json_data(json_file, url):
 
     data = json.load(open(json_file, 'r'))
 
-    #print url
-    #r = requests.get(url)
-    #print r.text
-
     tournament = data['tournament']
     year = data['year']
 
     print year, tournament
     
-    #headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
-    r = requests.post(url, json=data) #, headers=headers)
+    r = requests.post(url, json=data)
 
     with open('err.html', 'w') as f:
         f.write(r.content)
-        
-        
-
-
 
 def parser_driver(doc_file, mode='json'):
 
@@ -85,9 +74,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if args.dir is not None and args.operation == 'process':
-        #os.path.walk(args.dir, process_dir_super(not args.spec == 'html'), None)
         parse_directory(args.dir, args.mode)
- 
 
     if args.file is not None and args.operation is not None:
         if args.operation == 'process':

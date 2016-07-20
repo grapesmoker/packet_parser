@@ -2,8 +2,8 @@ from utils import sanitize
 import re
 import json
 
-num_regex = '^(<strong>[\d]+\.[\s]*<\/strong>[\s]*|[\d]+\.[\s]*)'
-tb_regex = '^(<strong>TB\.[\s]*<\/strong>[\s]*|TB\.[\s]*)'
+num_regex = '^([\s]*<strong>[\d]+\.[\s]*<\/strong>[\s]*|[\s]*[\d]+\.[\s]*)'
+tb_regex = '^([\s]*<strong>TB\.[\s]*<\/strong>[\s]*|[\s]*TB\.[\s]*)'
 
 class InvalidTossup(Exception):
 
@@ -23,9 +23,6 @@ class Tossup:
         self.question = question
         self.answer = answer
         self.number = number
-        
-        self.answer_sanitized = sanitize(self.answer, [])
-        self.question_sanitized = sanitize(self.question, [])
 
         self.question = re.sub(num_regex, '', self.question)
         self.question = re.sub(tb_regex, '', self.question)
@@ -38,6 +35,9 @@ class Tossup:
         self.answer = self.answer.replace('<em><strong>', '<req>')
         self.answer = self.answer.replace('</em></strong>', '</req>')
         self.answer = self.answer.replace('</strong></em>', '</req>')
+
+        self.answer_sanitized = sanitize(self.answer, [])
+        self.question_sanitized = sanitize(self.question, [])
 
         self.packet = packet
         self.tournament = tournament
@@ -79,17 +79,14 @@ class Tossup:
         if self.answer == '':
             raise InvalidTossup('answer', self.answer, self.number)
 
-        # if re.match('answer:', self.answer) is None:
-        #        raise InvalidTossup('answer', self.answer)
-
         self.valid = True
         return True
 
     def __unicode__(self):
 
-        s =  '\n' #'*' * 50 + '\n'
+        s =  '\n'
         s += '{0}\nANSWER: {1}'.format(self.question, self.answer)
-        s += '\n' #'*' * 50 + '\n'
+        s += '\n'
 
         return s.decode('utf-8')
 

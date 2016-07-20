@@ -70,5 +70,3 @@ class Tournament:
             packet.load_packet_from_file(packet_file)
 
             self.add_packet(packet)
-
-        
