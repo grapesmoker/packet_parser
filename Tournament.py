@@ -1,9 +1,10 @@
-from Packet import Packet, InvalidPacket
+from Packet import Packet, InvalidPacket, PacketParserError
 from utils import conf_gen
 
 import re
 import os
 import json
+
 
 class Tournament:
 
@@ -11,6 +12,7 @@ class Tournament:
         self.tour_name = tour_name
         self.year = year
         self.packets = packets
+        self.errors = []
         
     def add_packet(self, packet):
         self.packets.append(packet)
@@ -33,22 +35,21 @@ class Tournament:
 
     def is_valid(self):
 
-        packet_errors = []
         for packet in self.packets:
             try:
                 if packet.is_valid():
                     pass
             except InvalidPacket as ex:
-                packet_errors.append(ex)
+                self.errors.append(ex)
 
-        if packet_errors == []:
+        if self.errors == []:
             return True
         else:
-            for err in packet_errors:
-                print err
+            for err in self.errors:
+                print(err)
             return False
 
-    def create_tournament_from_directory(self, dir):
+    def create_tournament_from_directory(self, dir, reuse_html=False):
 
         conf_file = os.path.join(dir, 'config.json')
 
@@ -67,6 +68,9 @@ class Tournament:
             packet_author = file_entry['author']
 
             packet = Packet(packet_author, tournament=self.tour_name)
-            packet.load_packet_from_file(packet_file)
+            try:
+                packet.load_packet_from_file(packet_file, reuse_html=reuse_html)
+            except PacketParserError as ex:
+                self.errors.append(ex)
 
             self.add_packet(packet)

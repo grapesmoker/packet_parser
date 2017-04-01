@@ -10,6 +10,7 @@ import codecs
 
 from utils import ansregex, bpart_regex, is_answer, is_bpart, get_bonus_part_value, sanitize, conf_gen
 
+
 class InvalidPacket(Exception):
 
     def __init__(self, *args):
@@ -24,12 +25,30 @@ class InvalidPacket(Exception):
 
         return s
 
+
+class PacketParserError(Exception):
+
+    def __init__(self, *args):
+        self.args = [a for a in args]
+
+    def __str__(self):
+        return'\nThere was a problem parsing packet {}!\nInvalid data encountered near: {}'.format(self.args[0], self.args[1])
+
+
 class Packet:
 
-    def __init__(self, author, tossups=[], bonuses=[], tournament=None):
+    def __init__(self, author, tossups=None, bonuses=None, tournament=None):
         self.author = author
-        self.tossups = tossups
-        self.bonuses = bonuses
+        if tossups:
+            self.tossups = tossups
+        else:
+            self.tossups = []
+
+        if bonuses:
+            self.bonuses = bonuses
+        else:
+            self.bonuses = []
+
         self.tournament = tournament
 
     def add_tossup(self, tossup):
@@ -40,14 +59,13 @@ class Packet:
 
         self.bonuses.append(bonus)
 
-
     def __unicode__(self):
 
-        return 'Packet by {0}'.format(author)
+        return 'Packet by {0}'.format(self.author)
 
     def __str__(self):
 
-        return 'Packet by {0}'.format(author)
+        return 'Packet by {0}'.format(self.author)
 
     def to_dict(self):
 
@@ -91,14 +109,24 @@ class Packet:
         if tossup_errors != [] or bonus_errors != []:
             raise InvalidPacket(self.author, tossup_errors, bonus_errors)
         else:
-            print 'packet {0} parsed {1} tossups and {2} bonuses'.format(self.author, len(self.tossups), len(self.bonuses))
+            print('packet {0} parsed {1} tossups and {2} bonuses'.format(self.author, len(self.tossups), len(self.bonuses)))
             return True
-            
 
-    def load_packet_from_file(self, doc_file):
+    def load_packet_from_file(self, doc_file, reuse_html=False):
 
-        html_file = self.convert_doc_to_html(doc_file)
-        packet_contents = self.prepare_html_file(html_file)
+        if reuse_html:
+            if re.search('docx', doc_file):
+                html_file = doc_file.replace('.docx', '.html')
+            elif re.search('doc', doc_file):
+                html_file = re.sub('doc', 'html', doc_file)
+            else:
+                raise ValueError("not valid input format!")
+            with open(html_file, 'r') as f:
+                packet_contents = f.read().split('\n')
+        else:
+            html_file = self.convert_doc_to_html(doc_file)
+            packet_contents = self.prepare_html_file(html_file)
+
         tossups, bonuses = self.parse_packet(packet_contents)
 
         self.tossups = tossups
@@ -113,7 +141,7 @@ class Packet:
         elif re.search('doc', doc_file):
             html_file = re.sub('doc', 'html', doc_file)
         else:
-            print "not valid input format"
+            print("not valid input format")
         
         cmd = 'pandoc -f docx -t html -o "{0}" "{1}"'.format(html_file, doc_file)
         cmd = shlex.split(cmd)
@@ -122,7 +150,7 @@ class Packet:
         output, errors = p.communicate()
     
         return html_file
-    
+
     def prepare_html_file(self, html_file, skip_lines=0):
     
         with codecs.open(html_file, 'r', encoding='utf-8') as f:
@@ -130,13 +158,36 @@ class Packet:
 
         packet_contents = re.sub('<br />', '\n', packet_contents)
             
-        packet_contents = map(lambda x: sanitize(x, valid_tags=['em', 'strong']),
-                              packet_contents.split('\n'))
+        packet_contents = [sanitize(element, valid_tags=['em', 'strong']) for element in packet_contents.split('\n')]
+
+        tossups_start = None
+        bonuses_start = None
+        for i, item in enumerate(packet_contents):
+            if re.search('Tossups', item, flags=re.I) and not tossups_start:
+                tossups_start = i
+            elif re.search('Bonuses', item, flags=re.I) and not bonuses_start:
+                bonuses_start = i
+
+        #print(tossups_start, bonuses_start)
+
+        if tossups_start is not None and bonuses_start is not None:
+            tossups = packet_contents[tossups_start:bonuses_start]
+            bonuses = packet_contents[bonuses_start + 1:]
+            packet_contents = tossups + bonuses
+            #print(html_file, '\n', tossups[-1], '\n', bonuses[0], '\n', bonuses[-1])
+            #print(bonuses[0])
+            #print(bonuses[-1])
+
         packet_contents = [x.strip() for x in packet_contents if sanitize(x).strip() != ''
                            and len(x) > 20
                            and (not re.search('Tossups', x, flags=re.I))
-                           and (not re.search('Bonuses', x, flags=re.I))]
-    
+                           and (not re.search('Bonuses', x, flags=re.I))
+                           and not x.strip() in ['Extra', 'Extras']]
+
+        with open(html_file, 'w') as f:
+            for item in packet_contents:
+                f.write(item + '\n')
+
         return packet_contents[skip_lines:]
 
     def parse_packet(self, packet_contents):
@@ -151,7 +202,7 @@ class Packet:
 
         # this is an arbitrary symbol to make sure the stack popping terminates
         packet_contents.append(50 * '*')
-    
+
         for i, item in enumerate(packet_contents, start=1):
         
             if (not is_answer(item) and not is_bpart(item) and not len(parser_stack) < 2) or i == len(packet_contents):
@@ -169,27 +220,28 @@ class Packet:
                     tossups.append(new_tossup)
                     tu_num += 1
                     
-                if len(result) > 2 and (len(result) % 2 == 1) and is_answer(result[-1]) and not is_answer(result[0]):
+                elif len(result) > 2 and (len(result) % 2 == 1) and is_answer(result[-1]) and not is_answer(result[0]):
                     bonus_parts = result[1::2]
                     values = []
                     for bp in bonus_parts:
                         try:
                             val = int(get_bonus_part_value(bp))
                         except Exception as ex:
-                            print 'Could not extract value from\n{0}\n in \n{1}, assuming 10'.format(bp, self.author)
+                            print('Could not extract value from\n{0}\n in \n{1}, assuming 10'.format(bp, self.author))
                             val = 10
                         values.append(val)
                         
-                    bonus_parts = map(lambda x: re.sub(bpart_regex, '', x).strip(),
-                                      bonus_parts)
-                    answers = map(lambda x: re.sub(ansregex, '', x).strip(), result[2::2])
+                    bonus_parts = [re.sub(bpart_regex, '', part).strip() for part in bonus_parts]
+                    answers = [re.sub(ansregex, '', ans).strip() for ans in result[2::2]]
                     leadin = result[0]
                     bonus = Bonus(leadin=leadin, parts=bonus_parts,
                                   values=values, answers=answers, number=bs_num,
                                   packet=self.author, tournament=self.tournament)
                     bonuses.append(bonus)
                     bs_num += 1
-                
+                elif len(result) > 2:
+                    raise PacketParserError(self.author, result)
+
                 parser_stack.append(item)
             else:
                 parser_stack.append(item)

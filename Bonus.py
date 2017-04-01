@@ -19,14 +19,22 @@ class InvalidBonus(Exception):
         
         return s
 
+
 class Bonus:
-    def __init__(self, leadin='', parts=[], answers=[], values=[], number='',
+
+    def __init__(self, leadin='', parts=None, answers=None, values=None, number='',
                  packet=None, tournament=None):
         self.leadin = leadin
-        self.parts = parts
-        self.answers = answers
+        if parts: self.parts = parts
+        else: self.parts = []
+
+        if answers: self.answers = answers
+        else: self.answers = []
+
+        if values: self.values = values
+        else: self.values = []
+
         self.number = number
-        self.values = values
         self.packet = packet
         self.tournament = tournament
 
@@ -44,16 +52,15 @@ class Bonus:
             ans = ans.replace('</strong></em>', '</req>')
             return ans
 
-        self.answers = map(clean_answer, self.answers)
-
-        self.answers_sanitized = map(sanitize, self.answers)
+        self.answers = [clean_answer(answer) for answer in self.answers]
+        self.answers_sanitized = [sanitize(answer) for answer in self.answers]
         self.leadin_sanitized = sanitize(self.leadin)
-        self.parts_sanitized = map(sanitize, self.parts)
+        self.parts_sanitized = [sanitize(part) for part in self.parts]
         
-    def add_part(part):
+    def add_part(self, part):
         self.parts.append(part)
 
-    def add_answer(answer):
+    def add_answer(self, answer):
         self.answers.append(answer)
 
     def to_json(self):
