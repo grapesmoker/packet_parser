@@ -73,7 +73,7 @@ def conf_gen(path, spec):
     tour_dict['year'] = year
 
     tour_dict['packets'] = []
-    
+
     for filename in files:
         if '-' in filename:
             split_fn = filename.split('-')
@@ -82,7 +82,8 @@ def conf_gen(path, spec):
             elif len(split_fn) > 2:
                 author_guess = ' - '.join(split_fn[1:]).strip().replace('.docx', '')
         else:
-            author_guess = filename
+            author_guess = filename.replace('.docx', '')
+
         author = input('Enter the author of {} [default: {}]: '.format(filename, author_guess))
         if str(author) == '':
             author = author_guess

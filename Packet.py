@@ -112,7 +112,7 @@ class Packet:
             print('packet {0} parsed {1} tossups and {2} bonuses'.format(self.author, len(self.tossups), len(self.bonuses)))
             return True
 
-    def load_packet_from_file(self, doc_file, reuse_html=False):
+    def load_packet_from_file(self, doc_file, reuse_html=False, test=False):
 
         if reuse_html:
             if re.search('docx', doc_file):
@@ -124,7 +124,7 @@ class Packet:
             with open(html_file, 'r') as f:
                 packet_contents = f.read().split('\n')
         else:
-            html_file = self.convert_doc_to_html(doc_file)
+            html_file = self.convert_doc_to_html(doc_file, test)
             packet_contents = self.prepare_html_file(html_file)
 
         tossups, bonuses = self.parse_packet(packet_contents)
@@ -132,7 +132,7 @@ class Packet:
         self.tossups = tossups
         self.bonuses = bonuses
 
-    def convert_doc_to_html(self, doc_file):
+    def convert_doc_to_html(self, doc_file, test=False):
         
         doc_file = os.path.abspath(doc_file)
         
@@ -142,6 +142,9 @@ class Packet:
             html_file = re.sub('doc', 'html', doc_file)
         else:
             print("not valid input format")
+
+        if test:
+            html_file = '/Users/vinokurovy/Development/personal/packet_parser/test.html'
         
         cmd = 'pandoc -f docx -t html -o "{0}" "{1}"'.format(html_file, doc_file)
         cmd = shlex.split(cmd)
@@ -156,15 +159,17 @@ class Packet:
         with codecs.open(html_file, 'r', encoding='utf-8') as f:
             packet_contents = f.read()
 
-        packet_contents = re.sub('<br />', '\n', packet_contents)
+        packet_contents = re.sub('<br />', '', packet_contents)
             
         packet_contents = [sanitize(element, valid_tags=['em', 'strong']) for element in packet_contents.split('\n')]
+
+        # import ipdb; ipdb.set_trace()
 
         tossups_start = None
         bonuses_start = None
         for i, item in enumerate(packet_contents):
             if re.search('Tossups', item, flags=re.I) and not tossups_start:
-                tossups_start = i
+                tossups_start = i + 1
             elif re.search('Bonuses', item, flags=re.I) and not bonuses_start:
                 bonuses_start = i
 
@@ -180,9 +185,8 @@ class Packet:
 
         packet_contents = [x.strip() for x in packet_contents if sanitize(x).strip() != ''
                            and len(x) > 20
-                           and (not re.search('Tossups', x, flags=re.I))
-                           and (not re.search('Bonuses', x, flags=re.I))
-                           and not x.strip() in ['Extra', 'Extras']]
+                           and not x.strip() in ['Extra', 'Extras']
+                           and not re.search('^(<.*>|&lt;.*&gt;)', x.strip())]
 
         with open(html_file, 'w') as f:
             for item in packet_contents:
@@ -203,6 +207,8 @@ class Packet:
         # this is an arbitrary symbol to make sure the stack popping terminates
         packet_contents.append(50 * '*')
 
+        # import ipdb; ipdb.set_trace()
+
         for i, item in enumerate(packet_contents, start=1):
         
             if (not is_answer(item) and not is_bpart(item) and not len(parser_stack) < 2) or i == len(packet_contents):
@@ -218,6 +224,7 @@ class Packet:
                     new_tossup = Tossup(question=question, answer=answer, number=tu_num,
                                         packet=self.author, tournament=self.tournament)
                     tossups.append(new_tossup)
+                    #print(tu_num, answer)
                     tu_num += 1
                     
                 elif len(result) > 2 and (len(result) % 2 == 1) and is_answer(result[-1]) and not is_answer(result[0]):
@@ -234,6 +241,10 @@ class Packet:
                     bonus_parts = [re.sub(bpart_regex, '', part).strip() for part in bonus_parts]
                     answers = [re.sub(ansregex, '', ans).strip() for ans in result[2::2]]
                     leadin = result[0]
+
+                    if len(answers) > 3 and len(bonus_parts) > 3:
+                        raise PacketParserError(self.author, result)
+
                     bonus = Bonus(leadin=leadin, parts=bonus_parts,
                                   values=values, answers=answers, number=bs_num,
                                   packet=self.author, tournament=self.tournament)

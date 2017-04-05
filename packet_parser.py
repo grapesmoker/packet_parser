@@ -85,6 +85,10 @@ if __name__ == '__main__':
     if args.dir is not None and args.operation == 'process':
         parse_directory(args.dir, args.mode, args.reuse_html)
 
+    if args.file is not None and args.operation == 'test':
+        packet = Packet('test')
+        packet.load_packet_from_file(args.file, test=True)
+
     if args.file is not None and args.operation is not None:
         if args.operation == 'process':
             parser_driver(args.file)
